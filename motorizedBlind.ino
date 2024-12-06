@@ -91,7 +91,7 @@ void loop(){
               digitalWrite(ledPin, HIGH);
             } else if (header.indexOf("GET /LED/off") >= 0) {
               Serial.println("LED OFF");
-               ledState = "off";
+              ledState = "off";
               digitalWrite(ledPin, LOW);
             } else if (header.indexOf("GET /MOTOR/up") >= 0) {
               Serial.println("Motor up");
@@ -99,7 +99,7 @@ void loop(){
               myStepper.step(STEPS);
               delay(2000);
               motorState = "off";
-            } else if (header.indexOf("GET /MOTOR/up") >= 0) {
+            } else if (header.indexOf("GET /MOTOR/down") >= 0) {
               Serial.println("Motor down");
               motorState = "moving down";
               myStepper.step(-STEPS);
