@@ -8,10 +8,10 @@
 
 #define STEPS 2038
 #define ledPin 2
-#define motorPin1 15
+#define motorPin1 17
 #define motorPin2 0
 #define motorPin3 4
-#define motorPin4 17
+#define motorPin4 15
 
 // Create stepper object called 'myStepper'
 Stepper myStepper = Stepper(STEPS, motorPin1, motorPin2, motorPin3, motorPin4);
@@ -56,7 +56,7 @@ void setup() {
   server.begin();
 
   // Set motor speed
-  myStepper.setSpeed(5);
+  myStepper.setSpeed(10);
 }
 
 void loop(){
@@ -96,14 +96,12 @@ void loop(){
             } else if (header.indexOf("GET /MOTOR/up") >= 0) {
               Serial.println("Motor up");
               motorState = "moving up";
-              myStepper.step(STEPS);
-              delay(2000);
+              myStepper.step(STEPS * 3);  // 3 * steps seems to be the right amount for covering the window with the blind completely
               motorState = "off";
             } else if (header.indexOf("GET /MOTOR/down") >= 0) {
               Serial.println("Motor down");
               motorState = "moving down";
-              myStepper.step(-STEPS);
-              delay(2000);
+              myStepper.step(-STEPS * 3); // 3 * steps seems to be the right amount for covering the window with the blind completely
               motorState = "off";
             }
             
@@ -115,10 +113,10 @@ void loop(){
             client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
             client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;");
             client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
-            client.println(".button2 {background-color: #555555;}</style></head>");
+            client.println(".buttonOFF {background-color: #555555;}</style></head>");
             
             // Web Page Heading
-            client.println("<body><h1>ESP32 Web Server</h1>");
+            client.println("<body><h1>Basement Window Blind Control</h1>");
             
             // Display current state, and ON/OFF buttons for ledPin 
             client.println("<p>LED (Pin 2) - State " + ledState + "</p>");
@@ -126,14 +124,18 @@ void loop(){
             if (ledState == "off") {
               client.println("<p><a href=\"/LED/on\"><button class=\"button\">ON</button></a></p>");
             } else {
-              client.println("<p><a href=\"/LED/off\"><button class=\"button button2\">OFF</button></a></p>");
+              client.println("<p><a href=\"/LED/off\"><button class=\"button buttonOFF\">OFF</button></a></p>");
             }
             // Display current state, and UP and DOWN buttons for stepper motor control 
             client.println("<p>Motor - State " + motorState + "</p>");
             // If the motorState is off, allow the user to move it
             if (motorState == "off") {
               client.println("<p><a href=\"/MOTOR/up\"><button class=\"button\">UP</button></a></p>");
-              client.println("<p><a href=\"/MOTOR/down\"><button class=\"button button2\">DOWN</button></a></p>");
+              client.println("<p><a href=\"/MOTOR/down\"><button class=\"button\">DOWN</button></a></p>");
+              // else display the grayed out buttons that don't do anything
+            } else {
+              client.println("<p><button class=\"button buttonOFF\">UP</button></a></p>");
+              client.println("<p><button class=\"button buttonOFF\">DOWN</button></a></p>");
             }
             client.println("</body></html>");
             
