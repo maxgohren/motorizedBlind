@@ -108,12 +108,12 @@ void loop(){
             } else if (header.indexOf("GET /MOTOR/up") >= 0) {
               Serial.println("Motor up");
               motorState = "moving up";
-              myStepper.step(STEPS * 3);  // 3 * steps seems to be the right amount for covering the window with the blind completely
+              myStepper.step(-STEPS * 3);  // 3 * steps seems to be the right amount for covering the window with the blind completely
               motorState = "off";
             } else if (header.indexOf("GET /MOTOR/down") >= 0) {
               Serial.println("Motor down");
               motorState = "moving down";
-              myStepper.step(-STEPS * 3); // 3 * steps seems to be the right amount for covering the window with the blind completely
+              myStepper.step(STEPS * 3); // 3 * steps seems to be the right amount for covering the window with the blind completely
               motorState = "off";
             }
             
