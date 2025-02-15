@@ -4,6 +4,7 @@
 
 #include <WiFi.h>
 #include <Stepper.h>
+#include "time.h"
 #include "wifi_config.h" // Include the Wi-Fi credentials
 
 #define STEPS 2038
@@ -13,11 +14,17 @@
 #define motorPin3 4
 #define motorPin4 15
 
+// Setup time
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = -5 * 60 * 60; // Canada EST is -5 Hours
+const int   daylightOffset_sec = 3600;
+
 // Create stepper object called 'myStepper'
 Stepper myStepper = Stepper(STEPS, motorPin1, motorPin2, motorPin3, motorPin4);
 
 // Create an instance of the server on port 80
 WiFiServer server(80);
+WiFiClient client;
 
 // Variable to store the HTTP request
 String header;
@@ -48,6 +55,7 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
+  
   // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
@@ -55,12 +63,16 @@ void setup() {
   Serial.println(WiFi.localIP());
   server.begin();
 
+  // Init and get the time
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+
   // Set motor speed
   myStepper.setSpeed(10);
 }
 
 void loop(){
-  WiFiClient client = server.accept();
+  client = server.accept();
 
   if (client) {                             // If a new client connects,
     currentTime = millis();
@@ -137,6 +149,7 @@ void loop(){
               client.println("<p><button class=\"button buttonOFF\">UP</button></a></p>");
               client.println("<p><button class=\"button buttonOFF\">DOWN</button></a></p>");
             }
+            printLocalTime();
             client.println("</body></html>");
             
             // The HTTP response ends with another blank line
@@ -158,4 +171,38 @@ void loop(){
     Serial.println("Client disconnected.");
     Serial.println("");
   }
+}
+
+void printLocalTime(){
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    client.println("Failed to obtain time");
+    return;
+  }
+  client.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+  client.print("Day of week: ");
+  client.println(&timeinfo, "%A");
+  client.print("Month: ");
+  client.println(&timeinfo, "%B");
+  client.print("Day of Month: ");
+  client.println(&timeinfo, "%d");
+  client.print("Year: ");
+  client.println(&timeinfo, "%Y");
+  client.print("Hour: ");
+  client.println(&timeinfo, "%H");
+  client.print("Hour (12 hour format): ");
+  client.println(&timeinfo, "%I");
+  client.print("Minute: ");
+  client.println(&timeinfo, "%M");
+  client.print("Second: ");
+  client.println(&timeinfo, "%S");
+
+  client.println("Time variables");
+  char timeHour[3];
+  strftime(timeHour,3, "%H", &timeinfo);
+  client.println(timeHour);
+  char timeWeekDay[10];
+  strftime(timeWeekDay,10, "%A", &timeinfo);
+  client.println(timeWeekDay);
+  client.println();
 }
